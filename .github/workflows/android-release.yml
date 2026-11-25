@@ -2,27 +2,54 @@ name: MioWatery unsigned TWA
 on:
   push:
     branches: [miowatery-deploy-01-candidate]
-    paths: ['android/**', '.well-known/assetlinks.json', '.github/workflows/android-release.yml']
+    paths: ['android/**', '.well-known/assetlinks.json', '.github/workflows/android-release.yml', 'verify-production.mjs', 'service-config.js']
 permissions:
   contents: read
 jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public author service health endpoints
+        run: |
+          for url in https://mio.xiaoshui.top/api/health https://repo.xiaoshui.top/api/health; do
+            printf '%s ' "$url"
+            curl --silent --show-error --max-time 15 --output /dev/null --write-out 'HTTP %{http_code} (%{content_type})\n' "$url" || true
+          done
   unsigned:
-    if: ${{ vars.MIOWATERY_ORIGIN != '' }}
     runs-on: ubuntu-latest
     env:
       MIO_ORIGIN: ${{ vars.MIOWATERY_ORIGIN }}
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve production origin
+        id: site
+        run: |
+          origin="$MIO_ORIGIN"
+          if [ -z "$origin" ] && [ -f android/production-origin.txt ]; then
+            origin=$(cat android/production-origin.txt)
+          fi
+          if [ -z "$origin" ]; then
+            echo 'No confirmed production origin yet.'
+            exit 0
+          fi
+          node verify-production.mjs "$origin"
+          printf 'origin=%s\n' "$origin" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v4
+        if: steps.site.outputs.origin != ''
         with:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
+        if: steps.site.outputs.origin != ''
         with:
           gradle-version: '8.14.3'
       - name: Build release without signing material
-        run: gradle --no-daemon -p android :app:assembleRelease "-PmioOrigin=$MIO_ORIGIN"
+        if: steps.site.outputs.origin != ''
+        env:
+          VERIFIED_ORIGIN: ${{ steps.site.outputs.origin }}
+        run: gradle --no-daemon -p android :app:assembleRelease "-PmioOrigin=$VERIFIED_ORIGIN"
       - uses: actions/upload-artifact@v4
+        if: steps.site.outputs.origin != ''
         with:
           name: miowatery-twa-unsigned
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
