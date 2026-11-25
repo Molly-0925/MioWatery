@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.molly0925.miowatery",
+      "sha256_cert_fingerprints": [
+        "44:8F:FB:93:AE:59:E8:AF:E6:3A:B0:D1:A1:71:C7:0D:E5:6D:94:E3:A0:26:80:72:DD:AC:E9:D1:CC:07:00:29"
+      ]
+    }
+  }
+]
