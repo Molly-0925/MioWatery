@@ -1,0 +1,33 @@
+plugins {
+    id 'com.android.application' version '8.13.0'
+}
+
+def origin = new URI(providers.gradleProperty('mioOrigin').get())
+if (origin.scheme != 'https' || !origin.host || origin.userInfo ||
+    origin.port != -1 || origin.query || origin.fragment || !(origin.rawPath in ['', '/'])) {
+    throw new GradleException('Set mioOrigin to the confirmed production HTTPS origin.')
+}
+def site = "https://${origin.host}"
+def statement = groovy.json.JsonOutput.toJson([[
+    relation: ['delegate_permission/common.handle_all_urls'],
+    target: [namespace: 'web', site: site]
+]])
+
+android {
+    namespace 'io.github.molly0925.miowatery'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'io.github.molly0925.miowatery'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        manifestPlaceholders = [siteHost: origin.host]
+        resValue 'string', 'launch_url', "${site}/"
+        resValue 'string', 'asset_statements', statement.replace('"', '\\"')
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.0'
+}

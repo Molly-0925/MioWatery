@@ -9,8 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="Mio水汪汪">
 <meta name="theme-color" id="theme-color" content="#ffffff">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192-pwa.png">
 <title>Mio水汪汪</title>
+<script src="service-config.js"></script>
 <style>
 :root{color-scheme:light;--bg:#fff;--p:#f3f4f5;--ink:#0f1419;--sub:#6b7480;--line:#eaecee;--ai:#eceef0;--me:#111;--me-ink:#fff;--fld:#fff;--av:#e3e5e8;--t2:#333;--err:#d93636;--shade:rgba(0,0,0,.35);
 --sans:-apple-system,"PingFang SC","Noto Sans SC","Hiragino Sans","Microsoft YaHei",sans-serif}
@@ -5012,7 +5013,7 @@ cpr.addEventListener('click',async e=>{const b=e.target.closest('[data-act]');
 
 /* ===== MCP 应用：抖音 / 小红书 链接解析 ===== */
 const MC={tab:'douyin',busy:false,res:null,err:'',text:'',cfg:false};
-const MC_DEFAULT='https://mio.xiaoshui.top/api';
+const MC_DEFAULT=window.MioWateryServices.contentParserBase;
 const mcBase=()=>((S.cfg.mcpBase||'').trim()||MC_DEFAULT).replace(/\/+$/,'');
 const mcHdr=()=>Object.assign({'Content-Type':'application/json'},S.cfg.mcpToken?{'X-Token':S.cfg.mcpToken}:{});
 const mcImg=u=>/^https?:\/\//i.test(u||'')?u:'';
@@ -8019,7 +8020,7 @@ function msResultsHTML(){
 }
 const msDiscover=()=>`<div class="ms-sbar"><div class="ms-search">${rpSvg('se')}<input id="ms-q" placeholder="搜索歌曲、艺人" value="${esc(MS.q)}" autocomplete="off" enterkeyhint="search"></div><button class="ms-cancel" data-ms-searchcancel>取消</button></div><div id="ms-results">${msResultsHTML()}</div>`;
 const msSkel=()=>`<div class="ms-sk"><div class="l s"></div><div class="l"></div><div class="l m"></div><div class="blk"></div><div class="l h"></div>${Array.from({length:4},()=>'<div class="rw"><i></i><div><div class="l"></div><div class="l m"></div></div></div>').join('')}</div>`;
-const qqCfg=()=>msM().qq||{};
+const qqCfg=()=>{const saved=msM().qq||{};return {...saved,base:saved.base||window.MioWateryServices.qqMusicBase};};
 const qqOn=()=>{const c=qqCfg();return !!(c.base&&c.key)};
 const qqBase=()=>String(qqCfg().base||'').replace(/\/+$/,'');
 async function qqApi(path,body){
@@ -10823,7 +10824,7 @@ async function xrExportPick(cat,title,pre){const ids=await xrPicker({title:title
 
 /* ---- 仓库数据与页面 ---- */
 const XRS={cat:'all',q:'',tab:'mine',pl:[]};
-const XR_DEFAULT_SERVER='https://repo.xiaoshui.top';
+const XR_DEFAULT_SERVER=window.MioWateryServices.workRepositoryBase;
 const XRU=()=>String(RPO().server||XR_DEFAULT_SERVER).replace(/\/+$/,'');
 async function xrApi(path,opt){let r;try{r=await fetch(XRU()+path,opt)}catch(e){throw new Error('连不上 '+XRU())}
  let j=null;try{j=await r.json()}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('服务器返回 '+r.status));return j}

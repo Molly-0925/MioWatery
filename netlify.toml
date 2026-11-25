@@ -1,0 +1,3 @@
+[build]
+  command = "node prepare-netlify.mjs"
+  publish = "public"

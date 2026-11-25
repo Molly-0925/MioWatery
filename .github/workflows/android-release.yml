@@ -1,0 +1,29 @@
+name: MioWatery unsigned TWA
+on:
+  push:
+    branches: [miowatery-deploy-01-candidate]
+    paths: ['android/**', '.well-known/assetlinks.json', '.github/workflows/android-release.yml']
+permissions:
+  contents: read
+jobs:
+  unsigned:
+    if: ${{ vars.MIOWATERY_ORIGIN != '' }}
+    runs-on: ubuntu-latest
+    env:
+      MIO_ORIGIN: ${{ vars.MIOWATERY_ORIGIN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Build release without signing material
+        run: gradle --no-daemon -p android :app:assembleRelease "-PmioOrigin=$MIO_ORIGIN"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: miowatery-twa-unsigned
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
